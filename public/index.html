@@ -1877,6 +1877,19 @@ body {
 
 /* whose turn: their name lights up yellow */
 .ring .seat.turn:not(.seat-me) .seat-name { background: var(--yellow); color: var(--ink-dark); box-shadow: 0 0 0 2px var(--yellow); }
+
+/* ---- touch screens (iPad, phones, home-screen app): taps register first time ---- */
+button, .hand-card, .pile, [data-color], [data-target], [data-fx] { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.hand-card, .hand-card * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+@media (hover: none) {
+  /* no hover lift on touch: on iPad a hover effect can swallow the first tap */
+  .hand-card.playable:hover { transform: translateY(-10px); }
+  .me .hand.layered .hand-card.playable:hover { transform: none; }
+  .draw-pile:not(:disabled):hover .card, .color-choice:hover, .target-btn:hover, .swap-opt:not(:disabled):hover span[aria-hidden] { transform: none; }
+}
+/* a move that's on its way to the server */
+.hand-card.sending { transform: translateY(-26px) !important; opacity: .6; transition: transform .12s ease, opacity .12s ease; pointer-events: none; }
+.draw-pile.sending .card { transform: translateY(-4px); opacity: .7; }
 </style>
 
 <main id="app"></main>
@@ -3125,10 +3138,16 @@ body {
       maybeTutorial(),
       en());
   }
+  // online: after a move is sent, ignore repeat taps until the server answers (max 2.5s), so one tap = one move
+  var PENDING_MOVE = 0,
+    LAST_MOVE = 0;
   function g(e) {
     if (!u) return !1;
+    if (MODE === "online" && e.playerId === p && ["play", "draw", "pass"].includes(e.type) && Date.now() < PENDING_MOVE) return !1;
     let n = Ge(u, e);
-    if (!n.ok) return (e.playerId === p && Se(n.error), !1);
+    // an extra tap right after your own move isn't an error worth showing
+    if (!n.ok) return (e.playerId === p && !(Date.now() - LAST_MOVE < 1200 && /not your turn|already drew|not in your hand/i.test(n.error)) && Se(n.error), !1);
+    e.playerId === p && ["play", "draw", "pass"].includes(e.type) && (LAST_MOVE = Date.now());
     if (MODE === "online") return (sendAction(e), !0);
     return (adopt(n.state), !0);
   }
@@ -5235,6 +5254,12 @@ body {
   function sendAction(a) {
     let { playerId, ...rest } = a;
     send({ t: "act", a: rest });
+    if (["play", "draw", "pass"].includes(a.type)) {
+      PENDING_MOVE = Date.now() + 2500;
+      // show the move straight away while the server confirms it
+      a.type === "play" && document.querySelector(`.hand-card[data-id="${a.cardId}"]`)?.classList.add("sending");
+      a.type === "draw" && document.getElementById("draw")?.classList.add("sending");
+    }
   }
 
   function onServer(msg) {
@@ -5291,6 +5316,7 @@ body {
   }
 
   function onState(msg) {
+    PENDING_MOVE = 0;
     NET.deadlineAt = msg.msLeft ? Date.now() + msg.msLeft : 0;
     NET.paused = !!msg.paused;
     let st = msg.state,
