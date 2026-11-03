@@ -2,7 +2,7 @@
 
 **A colour-matching card game for friends, with a Ghanaian look and built-in voice chat.** Start a table, send the link, and everyone who opens it sits down to play and talk. No accounts, no downloads.
 
-### ▶ [Play Uno-fficial](https://last-one-xnx1.onrender.com/)
+### ▶ [Play Uno-fficial](https://uno-fficial.onrender.com/)
 
 <sub>Hosted on a free plan: after a quiet spell, the first visit can take about a minute while the server wakes up.</sub>
 
