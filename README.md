@@ -7,7 +7,7 @@
 <sub>Hosted on a free plan: after a quiet spell, the first visit can take about a minute while the server wakes up.</sub>
 
 <p>
-  <img src="docs/table-desktop.jpg" alt="Uno-fficial on a computer: four players around a kente ribbon, the deck and discard pile in the middle" width="70%">
+  <img src="docs/table-desktop.jpg" alt="Uno-fficial on a computer: four players around a ring of Adinkra symbols, the deck and discard pile in the middle" width="70%">
   <img src="docs/table-phone.jpg" alt="Uno-fficial on a phone" width="22%">
 </p>
 
@@ -29,7 +29,7 @@ On top of the classic deck, Uno-fficial adds a few cards and house rules my frie
 - **Voice chat in the browser.** Tap the mic to talk; a ring lights up around whoever is speaking.
 - **Music for the table.** The host pastes a YouTube or YouTube Music playlist and everyone hears it in sync.
 - **Leaderboard** of wins and losses across rounds, and fresh seating every round.
-- **Ghanaian design:** an emerald room, a kente ribbon that moves in the direction of play, Adinkrahene card backs and ten Gen Z player avatars, including a king and a queen.
+- **Ghanaian design:** hand-painted signboard lettering, an emerald room ringed by gold Adinkra symbols that drift in the direction of play, and ten Gen Z player avatars, including a king and a queen.
 - **Works on phones, tablets and computers**, including a layered hand when you're stuck with a lot of cards.
 - **Practice mode** against the computer, anytime.
 

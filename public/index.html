@@ -1,7 +1,7 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>Uno-fficial</title><meta name="description" content="A colour-matching card game with Ghanaian style. Share a link, play with friends and talk over voice chat."><meta property="og:title" content="Uno-fficial"><meta property="og:description" content="Join my table: a card game with voice chat."><meta name="theme-color" content="#0d3b2e"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E %3Cg transform='translate(32 40)'%3E %3Cg transform='rotate(-26)'%3E%3Crect x='-12' y='-30' width='24' height='34' rx='5' fill='%23d62839' stroke='%2313261f' stroke-width='2.5'/%3E%3C/g%3E %3Cg transform='rotate(26)'%3E%3Crect x='-12' y='-30' width='24' height='34' rx='5' fill='%2312924c' stroke='%2313261f' stroke-width='2.5'/%3E%3C/g%3E %3Cg transform='rotate(0)'%3E%3Crect x='-13' y='-33' width='26' height='37' rx='5.5' fill='%23f2b705' stroke='%2313261f' stroke-width='2.5'/%3E %3Cellipse cx='0' cy='-14.5' rx='8.5' ry='12.5' transform='rotate(28 0 -14.5)' fill='%23fffaf0'/%3E %3Cpath d='M-3.6 -22 v9 a3.6 3.6 0 0 0 7.2 0 v-9' fill='none' stroke='%23d62839' stroke-width='3.2' stroke-linecap='round'/%3E %3Crect x='-10' y='-1' width='20' height='2.6' rx='1.3' fill='%2313261f'/%3E%3Crect x='-10' y='-1' width='5' height='2.6' fill='%2312924c'/%3E%3Crect x='-2.5' y='-1' width='5' height='2.6' fill='%23d62839'/%3E%3Crect x='5' y='-1' width='5' height='2.6' fill='%2312924c'/%3E %3C/g%3E%3C/g%3E%3C/svg%3E"></head><body>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Rubik:wght@600;700;800;900&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Archivo:wght@400;500;600;700;800&display=swap">
 <style>
 /* Layout: a toy-brick world. A blue studded baseplate room, a green studded plate for the
    table, seats ring it on white tiles, your hand runs along the bottom. Everything is flat:
@@ -1890,6 +1890,94 @@ button, .hand-card, .pile, [data-color], [data-target], [data-fx] { touch-action
 /* a move that's on its way to the server */
 .hand-card.sending { transform: translateY(-26px) !important; opacity: .6; transition: transform .12s ease, opacity .12s ease; pointer-events: none; }
 .draw-pile.sending .card { transform: translateY(-4px); opacity: .7; }
+
+/* ===================== Signboard: hand-painted Ghanaian shop-sign style =====================
+   Slab lettering like a painted signboard, flat painted panels with a dark outline and a hard
+   offset shadow, square-cornered buttons. Replaces the soft rounded app look. */
+:root {
+  --font-display: "Alfa Slab One", Rockwell, "Roboto Slab", Georgia, serif;
+  --font-card: "Alfa Slab One", Rockwell, "Roboto Slab", Georgia, serif;
+  --font-body: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --ink-sign: #04140f;
+  --board: #0f3d30;
+  --board-2: #155040;
+  font-synthesis: none;
+}
+body { font-family: var(--font-body); }
+/* the slab only has one weight: never fake-bold it */
+.brand, .setup h1, .win-title, .picker-title, .turn-who, .uno-bubble-text, .incoming-sub, .penalties h2, .lb-head strong,
+.pick-step legend, .pick-head, .roulette-name, .dare-text, .pen-n, .color-choice, .uno-btn, .card { font-weight: 400; }
+
+/* painted lettering on the big name: cream paint, red drop, dark edge */
+.setup h1 { letter-spacing: 0; line-height: .92; text-shadow: 3px 3px 0 var(--red), 6px 6px 0 var(--ink-sign); }
+.brand { letter-spacing: 0; text-shadow: 2px 2px 0 var(--red), 3px 3px 0 var(--ink-sign); }
+.pick-step legend, .pick-head, .picker-title, .lb-head strong, .penalties h2 { font-family: var(--font-display); letter-spacing: .01em; }
+
+/* panels: flat painted boards with a dark outline and a hard shadow, small corners */
+.rule, .friends, .roulette, .room-code-card, .lobby-seat, .picker, .penalties, .opt-card, .lobby-rules, .tut, .lobby-music, .opt-grid {
+  background: var(--board); border-radius: 8px;
+  box-shadow: 0 0 0 2px var(--ink-sign), 5px 5px 0 2px var(--ink-sign) !important;
+}
+.opt-grid .opt-card { box-shadow: 0 0 0 2px var(--ink-sign) !important; }
+.rule:has(input:checked) { box-shadow: 0 0 0 2px var(--ink-sign), inset 0 0 0 3px var(--yellow), 5px 5px 0 2px var(--ink-sign) !important; }
+.roulette.has-rule { background: var(--board); box-shadow: 0 0 0 2px var(--ink-sign), inset 0 0 0 3px var(--yellow), 5px 5px 0 2px var(--ink-sign) !important; }
+.lobby-add { border-radius: 8px; }
+
+/* buttons: square-cornered signs that press down into their shadow */
+.btn { border-radius: 6px; box-shadow: 0 0 0 2px var(--ink-sign), 3px 3px 0 2px var(--ink-sign); font-weight: 700; }
+.btn:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: 0 0 0 2px var(--ink-sign); }
+.btn-quiet { box-shadow: none !important; }
+.btn-quiet:active:not(:disabled) { transform: none; }
+.btn-primary, .btn-challenge { background: var(--yellow); color: var(--ink-sign); box-shadow: 0 0 0 2px var(--ink-sign), 3px 3px 0 2px var(--ink-sign); }
+.btn-call:not(:disabled) { box-shadow: 0 0 0 2px var(--ink-sign), 3px 3px 0 2px var(--ink-sign); }
+.btn-catch, .btn-take { box-shadow: 0 0 0 2px var(--ink-sign), 3px 3px 0 2px var(--ink-sign); }
+:is(.rule, .friends, .roulette, .room-code-card, .lobby-seat, .picker, .penalties, .opt-card, .lobby-rules, .tut, .lobby-music) .btn:not(.btn-primary):not(.btn-spin):not(.btn-quiet):not(.chip):not(.color-choice) {
+  background: var(--board-2); box-shadow: 0 0 0 2px var(--ink-sign), 3px 3px 0 2px var(--ink-sign);
+}
+.target-btn { border-radius: 6px; background: var(--board-2); box-shadow: 0 0 0 2px var(--ink-sign), 3px 3px 0 2px var(--ink-sign); }
+.color-choice { border-radius: 6px; box-shadow: 0 0 0 2px var(--ink-sign), 3px 3px 0 2px var(--ink-sign); }
+
+/* choice rows: separate painted tiles instead of a rounded pill track */
+.seg, .opt-card .seg, .setup .mode-seg { background: none !important; border: 0; padding: 0; gap: 8px; box-shadow: none !important; flex-wrap: wrap; }
+.seg span { border-radius: 6px; background: var(--board-2); box-shadow: 0 0 0 2px var(--ink-sign); padding: 7px 14px; }
+.seg input:checked + span { background: var(--yellow); color: var(--ink-sign); }
+.chip { border-radius: 6px; border: 0; box-shadow: 0 0 0 2px var(--ink-sign); background: var(--board-2); }
+.chip.on, .chip[aria-pressed="true"] { background: var(--yellow); color: var(--ink-sign); }
+
+/* inputs and selects: square, outlined */
+#nick, #join-code, #game-link, #dare-text, #lobby-music, #music-url, select { border-radius: 6px; border: 2px solid var(--ink-sign); background: #072219; }
+
+/* the table */
+.pile-label { text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 600; }
+.turn-who { border-radius: 6px; box-shadow: 0 0 0 2px var(--ink-sign), 3px 3px 0 2px var(--ink-sign); }
+.ring .seat .seat-name, .ring .seat .seat-count, .ring .seat.seat-me .seat-count { border-radius: 4px; }
+.turn-tag, .badge { border-radius: 4px; }
+.penalties { border-radius: 8px; }
+.pen-n { border-radius: 4px; }
+.color-now { border-radius: 6px; }
+.step-num { border-radius: 4px; font-family: var(--font-display); font-weight: 400; }
+.room-chip, .lobby-tag, .wait-chip, .dock-pill, .rule-banner, .toast { border-radius: 6px; }
+.toast { box-shadow: 0 0 0 2px var(--ink-sign), 4px 4px 0 2px var(--ink-sign); }
+/* panel titles painted in the slab too */
+.opt-card > span:first-child, .opt-card > legend, fieldset.rules > legend, .roulette-head strong, .music-field > span,
+.lobby-rules-head > strong { font-family: var(--font-display); font-weight: 400; letter-spacing: .01em; font-size: 18px; }
+.icon-pick .icons, .icon-pick.needs-pick .icons { border-radius: 10px; }
+
+/* calling UNO stays round */
+.btn-call { border-radius: 999px; }
+/* card backs: just the U in its oval, in gold on the dark back */
+.card.back { background: #24170e; }
+.card .back-rings {
+  width: 70%; aspect-ratio: 1; border: 0; box-shadow: none; opacity: .95; border-radius: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%23f2b705' stroke-linecap='round'%3E%3Cellipse cx='50' cy='50' rx='30' ry='42' transform='rotate(28 50 50)' stroke-width='4'/%3E%3Cpath d='M38 30v24a12 12 0 0 0 24 0V30' stroke-width='9'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* ---- Adinkra symbols round the table instead of the kente ribbon ---- */
+.track ellipse.rail-base, .track ellipse.k { display: none; }
+.adk-ring { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.adk-ring i { position: absolute; width: 15px; height: 15px; transform: translate(-50%, -50%); color: var(--yellow); opacity: .3; }
+.adk-ring svg { display: block; width: 100%; height: 100%; }
+@media (max-width: 700px) { .adk-ring i { width: 11px; height: 11px; } }
 </style>
 
 <main id="app"></main>
@@ -3578,6 +3666,7 @@ button, .hand-card, .pile, [data-color], [data-target], [data-fx] { touch-action
         <ellipse class="k k2" cx="50" cy="50" rx="${Z().rx}" ry="${Z().ry}" />
         <ellipse class="k k3" cx="50" cy="50" rx="${Z().rx}" ry="${Z().ry}" />
       </svg>
+      ${adkMarkup()}
       <div class="felt">
         ${zn}
         <div class="piles">
@@ -3980,6 +4069,47 @@ button, .hand-card, .pile, [data-color], [data-target], [data-fx] { touch-action
   var ROW_MAX = 8;
   function handRows(n) {
     return window.matchMedia("(max-width: 700px)").matches && n > ROW_MAX ? Math.ceil(n / ROW_MAX) : 1;
+  }
+  // a slow procession of gold Adinkra symbols round the table, moving in the direction of play
+  var ADK_SYMS = [
+      // Adinkrahene: greatness
+      '<svg viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2.6"/></g></svg>',
+      // Akoma: the heart, patience
+      '<svg viewBox="0 0 24 24"><path d="M12 20.5S4 15.6 4 9.6A4.1 4.1 0 0 1 12 7.3a4.1 4.1 0 0 1 8 2.3c0 6-8 10.9-8 10.9z" fill="currentColor"/></svg>',
+      // Nsoromma: child of the heavens, a star
+      '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 5.5l1.6 4.4h4.6l-3.7 2.8 1.4 4.5L12 14.5l-3.9 2.7 1.4-4.5-3.7-2.8h4.6z" fill="currentColor"/></svg>',
+      // Aya: the fern, endurance
+      '<svg viewBox="0 0 24 24"><path d="M12 2.5v19M12 6 8.5 3.5M12 6l3.5-2.5M12 10.5 7 7M12 10.5 17 7M12 15l-5-3.5M12 15l5-3.5M12 19.5l-4-3M12 19.5l4-3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+      // Eban: the fence, safety
+      '<svg viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="1"/><rect x="7.5" y="7.5" width="9" height="9"/><path d="M3 12h4.5M16.5 12H21M12 3v4.5M12 16.5V21"/></g></svg>',
+    ],
+    ADK_PHASE = 0,
+    ADK_LAST = 0,
+    ADK_ON = !1,
+    ADK_STILL = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function adkCount() {
+    return matchMedia("(max-width: 700px)").matches ? 34 : 64;
+  }
+  function adkPos(k, n) {
+    let a = ADK_PHASE + (k * 2 * Math.PI) / n,
+      { rx, ry } = Z();
+    return `left:${(50 + rx * Math.cos(a)).toFixed(2)}%;top:${(50 + ry * Math.sin(a)).toFixed(2)}%`;
+  }
+  function adkMarkup() {
+    let n = adkCount();
+    ADK_ON || ((ADK_ON = !0), requestAnimationFrame(adkTick));
+    return `<div class="adk-ring" aria-hidden="true">${Array.from({ length: n }, (_, k) => `<i style="${adkPos(k, n)}">${ADK_SYMS[k % ADK_SYMS.length]}</i>`).join("")}</div>`;
+  }
+  function adkTick(t) {
+    requestAnimationFrame(adkTick);
+    let ring = document.querySelector(".adk-ring"),
+      dt = Math.min(100, t - (ADK_LAST || t));
+    ADK_LAST = t;
+    if (!ring || ADK_STILL) return;
+    // one lap every two minutes
+    ADK_PHASE += (dt * (u && u.direction === -1 ? -1 : 1) * 2 * Math.PI) / 120000;
+    let it = ring.children;
+    for (let k = 0; k < it.length; k++) it[k].style.cssText = adkPos(k, it.length);
   }
   function dareJudge(e) {
     let d = e.dare,
