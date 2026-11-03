@@ -21,7 +21,7 @@ On top of the classic deck, Uno-fficial adds a few cards and house rules my frie
 - **Wild +10, Swap Hands and Shuffle Hands:** one of each per game, so they stay special.
 - **Double reverse:** put two reverses down together and you play again.
 - **Stacking and jump-ins:** pass a +2 or +4 along, or jump in out of turn with an exact match.
-- **Rule Roulette:** before each round the host spins a wheel for a twist rule, like *Skip Everyone*, and the table votes to keep it or spin again.
+- **Rule Roulette:** before each round the host spins a wheel for a twist borrowed from other UNO games, like *No Mercy: 25 and You're Out* or *Flip: Draw Five*, and the table votes to keep it or spin again.
 
 ## Features
 

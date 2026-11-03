@@ -4,22 +4,20 @@
 const COLORS = ["red", "yellow", "green", "blue"];
 const TOGGLES = ["sevenZero", "jumpIn", "stacking", "drawUntilPlayable", "noPowerFinish", "challengeWild4"];
 
+// twists borrowed from other official UNO games: Show 'Em No Mercy, Flip, Attack, plus classic house rules
 const FALLBACK = [
-  { name: "Skip Everyone", effect: { type: "skipAll" } },
-  { name: "Draw to Your Color", effect: { type: "drawColor" } },
-  { name: "Zeros Discard All", effect: { type: "discardAll", value: "0" } },
-  { name: "Wilds Shuffle Hands", effect: { type: "shuffleHands" } },
-  { name: "Stack Any Draw", effect: { type: "stackAny" } },
-  { name: "Random Draws", effect: { type: "launcher" } },
-  { name: "Seven-Zero Swap", effect: { type: "toggle", rule: "sevenZero" } },
-  { name: "Jump-In On", effect: { type: "toggle", rule: "jumpIn" } },
-  { name: "Draw Till You Match", effect: { type: "toggle", rule: "drawUntilPlayable" } },
-  { name: "+4 Challenge", effect: { type: "toggle", rule: "challengeWild4" } },
-  { name: "Threes Go Again", effect: { type: "bless", value: "3" } },
-  { name: "Blue Skips", effect: { type: "charged", color: "blue" } },
-  { name: "Heavier Penalties", effect: { type: "heavy", extra: 1 } },
-  { name: "Seven Penalty", effect: { type: "curse", value: "7", draw: 1 } },
-  { name: "Fives Pass a Card", effect: { type: "gift", value: "5" } },
+  { name: "No Mercy: Stack It All", effect: { type: "stackAny" } },
+  { name: "No Mercy: Draw Till You Play", effect: { type: "toggle", rule: "drawUntilPlayable" } },
+  { name: "No Mercy: 25 and You're Out", effect: { type: "mercy" } },
+  { name: "No Mercy: Sevens and Zeros", effect: { type: "toggle", rule: "sevenZero" } },
+  { name: "No Mercy: Skip Everyone", effect: { type: "skipAll" } },
+  { name: "No Mercy: Discard All", effect: { type: "discardAll", value: "0" } },
+  { name: "No Mercy: Color Roulette", effect: { type: "drawColor" } },
+  { name: "Flip: Draw Five", effect: { type: "draw5" } },
+  { name: "Attack: Card Launcher", effect: { type: "launcher" } },
+  { name: "Classic: Jump-In", effect: { type: "toggle", rule: "jumpIn" } },
+  { name: "Classic: +4 Challenge", effect: { type: "toggle", rule: "challengeWild4" } },
+  { name: "Classic: Shuffle Hands", effect: { type: "shuffleHands" } },
 ];
 
 function cleanRule(r) {
@@ -33,10 +31,10 @@ function cleanRule(r) {
   else if (ef.type === "charged" && COLORS.includes(ef.color)) out = { type: "charged", color: ef.color };
   else if (ef.type === "heavy") out = { type: "heavy", extra: Number(ef.extra) === 2 ? 2 : 1 };
   else if (ef.type === "toggle" && TOGGLES.includes(ef.rule)) out = { type: "toggle", rule: ef.rule };
-  else if (["skipAll", "drawColor", "shuffleHands", "stackAny", "launcher"].includes(ef.type)) out = { type: ef.type };
+  else if (["skipAll", "drawColor", "shuffleHands", "stackAny", "launcher", "mercy", "draw5"].includes(ef.type)) out = { type: ef.type };
   else if (ef.type === "discardAll" && digit(ef.value)) out = { type: "discardAll", value: digit(ef.value) };
   if (!out) return null;
-  const name = String(r.name || "").replace(/\s+/g, " ").trim().slice(0, 28) || "Mystery Rule";
+  const name = String(r.name || "").replace(/\s+/g, " ").trim().slice(0, 34) || "Mystery Rule";
   return { name, pitch: "", effect: out, ai: !!r.ai };
 }
 
@@ -53,7 +51,7 @@ function pickFallback(recent = []) {
   return { ...r, pitch: "", ai: false };
 }
 
-const PROMPT = (recent) => `You invent one twist rule for a round of a color-matching card game (like crazy eights). Cards are red, yellow, green or blue numbers 0-9, plus skip, reverse, +2, wild and wild +4.
+const PROMPT = (recent) => `You pick one twist rule for a round of a color-matching card game, borrowed from an official UNO variant such as Show 'Em No Mercy, UNO Flip or UNO Attack, or a classic UNO house rule. Cards are red, yellow, green or blue numbers 0-9, plus skip, reverse, +2, wild and wild +4.
 Pick exactly ONE effect from this kit, which is all the game can enforce:
 - {"type":"curse","value":"0"-"9","draw":1 or 2}: playing that number makes the next player draw cards.
 - {"type":"bless","value":"0"-"9"}: playing that number gives the player another turn.
@@ -67,7 +65,9 @@ Pick exactly ONE effect from this kit, which is all the game can enforce:
 - {"type":"shuffleHands"}: a plain wild shuffles every hand together and deals them out again.
 - {"type":"stackAny"}: +2 and +4 cards can be stacked on each other.
 - {"type":"launcher"}: a player with no match gets a random 0 to 4 cards instead of drawing 1.
-Name it plainly so a player knows what it does at a glance: 2-4 words, no themes, puns, invented words or brand names (good: "Skip Everyone", "Blue Skips", "Stack Any Draw"). Avoid repeating these recent rules: ${recent.join(", ") || "none"}.
+- {"type":"mercy"}: a player who reaches 25 cards is knocked out of the round.
+- {"type":"draw5"}: every +2 makes the next player draw 5 instead.
+Name it "<Variant>: <what it does>" in 2-5 plain words after the colon, where Variant is No Mercy, Flip, Attack or Classic (good: "No Mercy: Stack It All", "Flip: Draw Five"). Avoid repeating these recent rules: ${recent.join(", ") || "none"}.
 Reply with JSON only: {"name": string, "effect": {...}}`;
 
 /* Uses OpenAI when OPENAI_API_KEY is set; otherwise, or on any failure, a built-in twist. */

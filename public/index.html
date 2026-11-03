@@ -1978,6 +1978,7 @@ body { font-family: var(--font-body); }
 .adk-ring i { position: absolute; width: 15px; height: 15px; transform: translate(-50%, -50%); color: var(--yellow); opacity: .3; }
 .adk-ring svg { display: block; width: 100%; height: 100%; }
 @media (max-width: 700px) { .adk-ring i { width: 11px; height: 11px; } }
+.place-tag.knocked { background: var(--red); color: #fff; }
 </style>
 
 <main id="app"></main>
@@ -2205,6 +2206,7 @@ body { font-family: var(--font-body); }
     }
     if (r) return we(r);
     for (let l of a.players) l.hand.length > 2 && (l.calledLastCard = !1);
+    a.phase === "playing" && a.players[a.turn].out && ((a.turn = C(a, a.turn, 1)), (a.drawnCardId = null));
     for (let k = 0; k < a.players.length && a.phase === "playing" && a.players[a.turn].skipNext; k++) {
       let sk = a.players[a.turn];
       sk.skipNext = !1;
@@ -2335,14 +2337,17 @@ body { font-family: var(--font-body); }
       case "draw2":
       case "wild4":
       case "wild10": {
-        let h = (DRAWS[s.value] + (e.rules.roulette?.type === "heavy" ? e.rules.roulette.extra : 0)) * I;
+        let five = s.value === "draw2" && e.rules.roulette?.type === "draw5",
+          h = ((five ? 5 : DRAWS[s.value]) + (e.rules.roulette?.type === "heavy" ? e.rules.roulette.extra : 0)) * I;
+        five && e.events.push({ kind: "roulette", playerId: o.id, effect: "draw5" });
         e.rules.roulette?.type === "heavy" &&
           e.events.push({ kind: "roulette", playerId: o.id, effect: "heavy" });
         if (s.value === "wild4" && e.rules.roulette?.type === "drawColor" && e.pendingDraw === 0) {
           let w = C(e, n, 1),
+            nx = C(e, n, 2),
             k = drawUntil(e, w, (c) => c.color === e.currentColor || $(c), 25);
           e.events.push({ kind: "roulette", playerId: o.id, targetId: e.players[w].id, effect: "drawColor", count: k });
-          e.turn = C(e, n, 2);
+          e.turn = nx;
         } else if (s.value === "wild4" && e.rules.challengeWild4 && !o.out) {
           ((e.pendingDraw += h),
             e.pendingDraw > h &&
@@ -2357,8 +2362,10 @@ body { font-family: var(--font-body); }
             (e.turn = C(e, n, 1)),
             yn(e));
         else {
-          let w = C(e, n, 1);
-          (Y(e, w, h, !0), (e.turn = C(e, n, 2)));
+          // work out who plays next before the draw, in case the draw knocks the victim out
+          let w = C(e, n, 1),
+            nx = C(e, n, 2);
+          (Y(e, w, h, !0), (e.turn = nx));
         }
         break;
       }
@@ -2617,8 +2624,8 @@ body { font-family: var(--font-body); }
       e.phase = "finished";
       e.pendingDraw = 0;
       e.challenge = null;
-      e.loserId = left[0]?.id ?? null;
-      left[0] && e.events.push({ kind: "lose", playerId: left[0].id });
+      e.loserId = e.knocked?.[0] ?? left[0]?.id ?? null;
+      e.loserId && e.events.push({ kind: "lose", playerId: e.loserId });
       return !0;
     }
     return !1;
@@ -2626,6 +2633,7 @@ body { font-family: var(--font-body); }
   function Y(e, n, t, a) {
     let r = e.players[n],
       l = [];
+    if (r.out) return l;
     for (let o = 0; o < t; o++) {
       e.drawPile.length === 0 && mn(e);
       let i = e.drawPile.pop();
@@ -2642,8 +2650,33 @@ body { font-family: var(--font-body); }
         count: l.length,
         penalty: a,
       }),
+      e.rules.roulette?.type === "mercy" && r.hand.length >= MERCY && knockOut(e, n),
       l
     );
+  }
+  var MERCY = 25;
+  // No Mercy: a player who reaches 25 cards is knocked out of the round; their cards go back under the deck
+  function knockOut(e, n) {
+    let pl = e.players[n];
+    if (pl.out || e.phase !== "playing") return;
+    e.drawPile.unshift(...pl.hand);
+    pl.hand = [];
+    pl.out = 99;
+    pl.knocked = !0;
+    pl.calledLastCard = !1;
+    pl.skipNext = !1;
+    e.vulnerableId === pl.id && (e.vulnerableId = null);
+    (e.knocked = e.knocked || []).push(pl.id);
+    e.events.push({ kind: "knockout", playerId: pl.id });
+    let left = e.players.filter((x) => !x.out);
+    if (left.length <= 1) {
+      left[0] && ((e.places = e.places || []).push(left[0].id), (left[0].out = e.places.length), (e.winnerId = e.winnerId || left[0].id), e.events.push({ kind: "win", playerId: left[0].id, place: left[0].out }));
+      e.phase = "finished";
+      e.pendingDraw = 0;
+      e.challenge = null;
+      e.loserId = e.knocked[0];
+      e.events.push({ kind: "lose", playerId: e.knocked[0] });
+    }
   }
   function mn(e) {
     if (e.discardPile.length <= 1) return;
@@ -2673,6 +2706,7 @@ body { font-family: var(--font-body); }
         cardCount: i.hand.length,
         calledLastCard: i.calledLastCard,
         out: i.out || 0,
+        knocked: !!i.knocked,
       })),
       topCard: W(e),
       currentColor: e.currentColor,
@@ -4025,7 +4059,7 @@ body { font-family: var(--font-body); }
     return `
     <div class="seat ${i ? "turn" : ""} ${s ? "seat-me" : ""} ${t.winnerId === e.id ? "winner" : ""} ${e.out ? "out" : ""}" data-pid="${e.id}" style="left:${l}%; top:${o}%">
       <span class="avatar" aria-hidden="true">${U(Q[e.id])}${((w) => (w ? `<span class="win-bubble" title="${w} ${w === 1 ? "win" : "wins"}">${TROPHY}${w}</span>` : ""))(winsOf(e.id))}</span>
-      ${e.out ? `<span class="place-tag">${ORD(e.out)}</span>` : ""}
+      ${e.knocked ? '<span class="place-tag knocked">Out</span>' : e.out ? `<span class="place-tag">${ORD(e.out)}</span>` : ""}
       <span class="seat-name">${s ? "You" : esc(e.name)}</span>
       <span class="seat-count">${e.cardCount} ${e.cardCount === 1 ? "card" : "cards"}</span>
       ${MODE !== "online" ? "" : s ? `<button class="mic ${VOICE.micOn ? "on" : "off"}" id="mic" type="button" aria-pressed="${VOICE.micOn}" aria-label="${VOICE.micOn ? "Mute your mic" : "Turn on your mic"}">${VOICE.micOn ? Zn : Ze}</button>` : isBot(e.id) ? "" : seatMic(e.id, e.name)}
@@ -4545,6 +4579,7 @@ body { font-family: var(--font-body); }
       ev.kind === "swap" && (ev.playerId === p || ev.targetId === p ? bigNotice("swap", ev) : Se(`${A(ev.playerId)} swapped hands with ${A(ev.targetId)}`));
       ev.kind === "win" && u.phase === "playing" && outNotice(ev);
       ev.kind === "lose" && recordSolo();
+      ev.kind === "knockout" && Se(ev.playerId === p ? "25 cards: you're knocked out" : `${A(ev.playerId)} hit 25 cards and is knocked out`);
       ev.kind === "dareResult" && Se(ev.done ? `${ev.targetId === p ? "You" : A(ev.targetId)} did the dare` : `${ev.targetId === p ? "You" : A(ev.targetId)} skipped the dare: +10`);
       ev.kind === "doubleReverse" && Se(ev.playerId === p ? "Double reverse! Play again" : `Double reverse! ${A(ev.playerId)} goes again`);
     }
@@ -4678,6 +4713,8 @@ body { font-family: var(--font-body); }
                       ? `${name}! ${who} dropped ${ev.count} ${ev.count === 1 ? "card" : "cards"}`
                       : ev.effect === "shuffle"
                         ? `${name}! Hands shuffled`
+                        : ev.effect === "draw5"
+                          ? `${name}! That +2 is a +5`
                         : ev.effect === "launch"
                           ? ev.count ? `${who} ${who === "You" ? "get" : "gets"} ${ev.count}` : `${who} ${who === "You" ? "get" : "gets"} none. Lucky!`
                           : name;
@@ -4695,21 +4732,18 @@ body { font-family: var(--font-body); }
       challengeWild4: "a +4 can be challenged as a bluff",
     },
     FALLBACK = [
-      { name: "Skip Everyone", effect: { type: "skipAll" } },
-      { name: "Draw to Your Color", effect: { type: "drawColor" } },
-      { name: "Zeros Discard All", effect: { type: "discardAll", value: "0" } },
-      { name: "Wilds Shuffle Hands", effect: { type: "shuffleHands" } },
-      { name: "Stack Any Draw", effect: { type: "stackAny" } },
-      { name: "Random Draws", effect: { type: "launcher" } },
-      { name: "Seven-Zero Swap", effect: { type: "toggle", rule: "sevenZero" } },
-      { name: "Jump-In On", effect: { type: "toggle", rule: "jumpIn" } },
-      { name: "Draw Till You Match", effect: { type: "toggle", rule: "drawUntilPlayable" } },
-      { name: "+4 Challenge", effect: { type: "toggle", rule: "challengeWild4" } },
-      { name: "Threes Go Again", effect: { type: "bless", value: "3" } },
-      { name: "Blue Skips", effect: { type: "charged", color: "blue" } },
-      { name: "Heavier Penalties", effect: { type: "heavy", extra: 1 } },
-      { name: "Seven Penalty", effect: { type: "curse", value: "7", draw: 1 } },
-      { name: "Fives Pass a Card", effect: { type: "gift", value: "5" } },
+      { name: "No Mercy: Stack It All", effect: { type: "stackAny" } },
+      { name: "No Mercy: Draw Till You Play", effect: { type: "toggle", rule: "drawUntilPlayable" } },
+      { name: "No Mercy: 25 and You're Out", effect: { type: "mercy" } },
+      { name: "No Mercy: Sevens and Zeros", effect: { type: "toggle", rule: "sevenZero" } },
+      { name: "No Mercy: Skip Everyone", effect: { type: "skipAll" } },
+      { name: "No Mercy: Discard All", effect: { type: "discardAll", value: "0" } },
+      { name: "No Mercy: Color Roulette", effect: { type: "drawColor" } },
+      { name: "Flip: Draw Five", effect: { type: "draw5" } },
+      { name: "Attack: Card Launcher", effect: { type: "launcher" } },
+      { name: "Classic: Jump-In", effect: { type: "toggle", rule: "jumpIn" } },
+      { name: "Classic: +4 Challenge", effect: { type: "toggle", rule: "challengeWild4" } },
+      { name: "Classic: Shuffle Hands", effect: { type: "shuffleHands" } },
     ];
   function effectText(ef) {
     if (!ef) return "";
@@ -4729,7 +4763,11 @@ body { font-family: var(--font-body); }
       case "skipAll":
         return "A skip skips everyone, so you go again.";
       case "drawColor":
-        return "A +4 makes the next player draw until they get your color.";
+        return "A +4 makes the next player draw until they get the color you pick.";
+      case "mercy":
+        return "Reach 25 cards and you're knocked out of the round.";
+      case "draw5":
+        return "Every +2 makes the next player draw 5 instead.";
       case "discardAll":
         return `Playing a ${ef.value} also drops all your cards of that color.`;
       case "shuffleHands":
@@ -4753,10 +4791,10 @@ body { font-family: var(--font-body); }
     else if (ef.type === "charged" && COLORS.includes(ef.color)) out = { type: "charged", color: ef.color };
     else if (ef.type === "heavy") out = { type: "heavy", extra: Number(ef.extra) === 2 ? 2 : 1 };
     else if (ef.type === "toggle" && TOGGLES[ef.rule]) out = { type: "toggle", rule: ef.rule };
-    else if (["skipAll", "drawColor", "shuffleHands", "stackAny", "launcher"].includes(ef.type)) out = { type: ef.type };
+    else if (["skipAll", "drawColor", "shuffleHands", "stackAny", "launcher", "mercy", "draw5"].includes(ef.type)) out = { type: ef.type };
     else if (ef.type === "discardAll" && digit(ef.value)) out = { type: "discardAll", value: digit(ef.value) };
     if (!out) return null;
-    let name = String(r.name || "").replace(/\s+/g, " ").trim().slice(0, 28) || "Mystery Rule",
+    let name = String(r.name || "").replace(/\s+/g, " ").trim().slice(0, 34) || "Mystery Rule",
       pitch = "";
     return { name, pitch, effect: out, ai: !!r.ai };
   }

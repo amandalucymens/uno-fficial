@@ -219,6 +219,7 @@
     }
     if (r) return we(r);
     for (let l of a.players) l.hand.length > 2 && (l.calledLastCard = !1);
+    a.phase === "playing" && a.players[a.turn].out && ((a.turn = C(a, a.turn, 1)), (a.drawnCardId = null));
     for (let k = 0; k < a.players.length && a.phase === "playing" && a.players[a.turn].skipNext; k++) {
       let sk = a.players[a.turn];
       sk.skipNext = !1;
@@ -349,14 +350,17 @@
       case "draw2":
       case "wild4":
       case "wild10": {
-        let h = (DRAWS[s.value] + (e.rules.roulette?.type === "heavy" ? e.rules.roulette.extra : 0)) * I;
+        let five = s.value === "draw2" && e.rules.roulette?.type === "draw5",
+          h = ((five ? 5 : DRAWS[s.value]) + (e.rules.roulette?.type === "heavy" ? e.rules.roulette.extra : 0)) * I;
+        five && e.events.push({ kind: "roulette", playerId: o.id, effect: "draw5" });
         e.rules.roulette?.type === "heavy" &&
           e.events.push({ kind: "roulette", playerId: o.id, effect: "heavy" });
         if (s.value === "wild4" && e.rules.roulette?.type === "drawColor" && e.pendingDraw === 0) {
           let w = C(e, n, 1),
+            nx = C(e, n, 2),
             k = drawUntil(e, w, (c) => c.color === e.currentColor || $(c), 25);
           e.events.push({ kind: "roulette", playerId: o.id, targetId: e.players[w].id, effect: "drawColor", count: k });
-          e.turn = C(e, n, 2);
+          e.turn = nx;
         } else if (s.value === "wild4" && e.rules.challengeWild4 && !o.out) {
           ((e.pendingDraw += h),
             e.pendingDraw > h &&
@@ -371,8 +375,10 @@
             (e.turn = C(e, n, 1)),
             yn(e));
         else {
-          let w = C(e, n, 1);
-          (Y(e, w, h, !0), (e.turn = C(e, n, 2)));
+          // work out who plays next before the draw, in case the draw knocks the victim out
+          let w = C(e, n, 1),
+            nx = C(e, n, 2);
+          (Y(e, w, h, !0), (e.turn = nx));
         }
         break;
       }
@@ -631,8 +637,8 @@
       e.phase = "finished";
       e.pendingDraw = 0;
       e.challenge = null;
-      e.loserId = left[0]?.id ?? null;
-      left[0] && e.events.push({ kind: "lose", playerId: left[0].id });
+      e.loserId = e.knocked?.[0] ?? left[0]?.id ?? null;
+      e.loserId && e.events.push({ kind: "lose", playerId: e.loserId });
       return !0;
     }
     return !1;
@@ -640,6 +646,7 @@
   function Y(e, n, t, a) {
     let r = e.players[n],
       l = [];
+    if (r.out) return l;
     for (let o = 0; o < t; o++) {
       e.drawPile.length === 0 && mn(e);
       let i = e.drawPile.pop();
@@ -656,8 +663,33 @@
         count: l.length,
         penalty: a,
       }),
+      e.rules.roulette?.type === "mercy" && r.hand.length >= MERCY && knockOut(e, n),
       l
     );
+  }
+  var MERCY = 25;
+  // No Mercy: a player who reaches 25 cards is knocked out of the round; their cards go back under the deck
+  function knockOut(e, n) {
+    let pl = e.players[n];
+    if (pl.out || e.phase !== "playing") return;
+    e.drawPile.unshift(...pl.hand);
+    pl.hand = [];
+    pl.out = 99;
+    pl.knocked = !0;
+    pl.calledLastCard = !1;
+    pl.skipNext = !1;
+    e.vulnerableId === pl.id && (e.vulnerableId = null);
+    (e.knocked = e.knocked || []).push(pl.id);
+    e.events.push({ kind: "knockout", playerId: pl.id });
+    let left = e.players.filter((x) => !x.out);
+    if (left.length <= 1) {
+      left[0] && ((e.places = e.places || []).push(left[0].id), (left[0].out = e.places.length), (e.winnerId = e.winnerId || left[0].id), e.events.push({ kind: "win", playerId: left[0].id, place: left[0].out }));
+      e.phase = "finished";
+      e.pendingDraw = 0;
+      e.challenge = null;
+      e.loserId = e.knocked[0];
+      e.events.push({ kind: "lose", playerId: e.knocked[0] });
+    }
   }
   function mn(e) {
     if (e.discardPile.length <= 1) return;
@@ -687,6 +719,7 @@
         cardCount: i.hand.length,
         calledLastCard: i.calledLastCard,
         out: i.out || 0,
+        knocked: !!i.knocked,
       })),
       topCard: W(e),
       currentColor: e.currentColor,
