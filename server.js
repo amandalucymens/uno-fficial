@@ -73,6 +73,7 @@ function indexHtml() {
   return indexCache;
 }
 const spinHits = new Map(); // ip -> [timestamps], light rate limit for solo spins
+const MOVED_TO = (process.env.MOVED_TO || "").replace(/\/+$/, "");
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
   const p = url.pathname;
@@ -82,6 +83,8 @@ const server = http.createServer(async (req, res) => {
   };
   try {
     if (req.method !== "GET" && req.method !== "HEAD") return send(405, "text/plain", "Method not allowed");
+    // an old address can forward every visitor (and old game links) to the new one: set MOVED_TO=https://new-address
+    if (MOVED_TO && p !== "/healthz") return send(301, "text/plain", "Moved", { location: MOVED_TO + req.url });
     if (p === "/" || /^\/g\/[a-z0-9]{6,16}\/?$/.test(p)) return send(200, "text/html; charset=utf-8", indexHtml());
     if (p === "/healthz") return send(200, "text/plain", "ok");
     // which players are already taken at a table, so the invite screen can grey them out
