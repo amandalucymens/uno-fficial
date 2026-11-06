@@ -1979,6 +1979,13 @@ body { font-family: var(--font-body); }
 .adk-ring svg { display: block; width: 100%; height: 100%; }
 @media (max-width: 700px) { .adk-ring i { width: 11px; height: 11px; } }
 .place-tag.knocked { background: var(--red); color: #fff; }
+
+/* lobby: guests see the rules as a plain list, not buttons */
+.rule-list { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; padding: 0; margin: 10px 0 0; }
+.rule-list li { font-size: 14px; font-weight: 600; color: var(--cream, #f5efe0); }
+.rule-list li::before { content: "✓ "; color: var(--yellow); }
+.lobby-rules-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.lobby-rules-head .btn-reset { margin-left: auto; padding: 4px 10px; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
 </style>
 
 <main id="app"></main>
@@ -3074,10 +3081,9 @@ body { font-family: var(--font-body); }
           .join("")}
       </div>
       <h1>Uno-fficial</h1>
-      <p class="lede">Match the color or symbol, empty your hand first. Every round, Rule Roulette throws in a brand-new twist the whole table votes on.</p>
         <fieldset class="icon-pick pick-step ${pe ? "" : "needs-pick"}" id="pick-step">
           <legend><span class="step-num">1</span>Pick your player</legend>
-          <p class="pick-hint" id="pick-hint">${pe ? `You're playing as <span class="picked-name">${K[pe].name}</span>. Tap to change.` : "Tap a face to choose who you play as."}</p>
+          <p class="pick-hint" id="pick-hint">${pe ? `You're playing as <span class="picked-name">${K[pe].name}</span>. Tap to change.` : ""}</p>
           <div class="icons">
             ${ce
               .map(
@@ -3135,22 +3141,22 @@ body { font-family: var(--font-body); }
           <div class="seg">
             ${[0, 15, 30, 60].map((n) => `<label><input type="radio" name="timer" id="timer-${n}" value="${n}" ${n === F ? "checked" : ""}><span>${n ? `${n}s` : "Off"}</span></label>`).join("")}
           </div>
-          <p class="rules-note">Out of time? You draw and play moves on.</p>
+          <p class="rules-note">Run out of time and you draw.</p>
         </fieldset>
         <div class="opt-card music-card">
           ${musicField("music-url", store("lo-playlist"), "Music")}
-          <p class="rules-note" id="music-note">Plays while you play. In online games, everyone at your table hears it.</p>
+          <p class="rules-note" id="music-note">Everyone at your table hears it.</p>
         </div>
         </div>
         <fieldset class="rules">
           <legend>House rules</legend>
-          <p class="rules-note">Whoever deals picks these. When you host a room, everyone plays by yours.</p>
-          ${X("stacking", "Stacking", "Answer a +2 with a +2, or a +4 with a +4, and pass the growing penalty on. You can also put down several cards with the same number at once.")}
-          ${X("jumpIn", "Jump-in", "Hold the exact same card as the pile? Play it out of turn.")}
-          ${X("drawUntilPlayable", "Draw until you can play", "No match? Keep drawing until you get a card that fits.")}
-          ${X("challengeWild4", "+4 challenge", "A +4 is only fair when you have nothing in the color in play. The next player can call a bluff: guilty takes the cards, wrong guess takes 2 extra.")}
-          ${X("noPowerFinish", "No finishing on a power card", "Your last card must be a number. You can't go out on a skip, reverse, +2 or wild.")}
-          ${X("doubleReverse", "Double reverse", "Put two reverses down together and you play again.")}
+          <p class="rules-note">You set these for everyone.</p>
+          ${X("stacking", "Stacking", "Stack a +2 on a +2, or play same numbers together.")}
+          ${X("jumpIn", "Jump-in", "Got the exact same card as the pile? Play it, even if it's not your turn.")}
+          ${X("drawUntilPlayable", "Draw until you can play", "No match? Keep drawing.")}
+          ${X("challengeWild4", "+4 challenge", "Call a bluff on a +4.")}
+          ${X("noPowerFinish", "No finishing on a power card", "Your last card must be a number.")}
+          ${X("doubleReverse", "Double reverse", "Two reverses and you go again.")}
         </fieldset>
         <button class="btn btn-primary solo-only" type="submit" id="start">Deal cards</button>
       </div>
@@ -3381,7 +3387,7 @@ body { font-family: var(--font-body); }
             <input id="dare-text" maxlength="60" placeholder="Or write your own" aria-label="Your dare" autocomplete="off" autocapitalize="sentences" enterkeyhint="send" value="${esc(TG.dareText || "")}">
             <button class="btn btn-primary" type="submit">Send dare</button>
           </div>
-          <p class="rules-note dare-note">Your timer is paused. You'll judge the dare after: if they don't do it, they draw 10.</p>
+          <p class="rules-note dare-note">Timer paused. Skip the dare: draw 10.</p>
         </form>
         <button class="btn btn-quiet" id="target-back" type="button">Pick someone else</button>
       </div>
@@ -4433,7 +4439,7 @@ body { font-family: var(--font-body); }
   var MODE = "solo",
     MODE_PICK = "solo",
     NET = null,
-    NET_NOTE = "You get a link to send to friends. Anyone who opens it joins your table, and you can all talk with the mic.",
+    NET_NOTE = "You'll get a link to share.",
     SOLO_RULE = null,
     CUR_RULE = null,
     LAST_TURN = "",
@@ -4724,12 +4730,12 @@ body { font-family: var(--font-body); }
   /* ---------- Rule Roulette */
   var COLORS = ["red", "yellow", "green", "blue"],
     TOGGLES = {
-      sevenZero: "7s swap hands with anyone, 0s pass every hand along",
-      jumpIn: "jump in out of turn with an exact match",
-      stacking: "stack +2 on +2 and +4 on +4",
-      drawUntilPlayable: "keep drawing until you can play",
-      noPowerFinish: "your last card must be a number",
-      challengeWild4: "a +4 can be challenged as a bluff",
+      sevenZero: "A 7 swaps hands, a 0 passes them all on.",
+      jumpIn: "Got the exact same card as the pile? Play it, even if it's not your turn.",
+      stacking: "Stack a +2 on a +2, or play same numbers together.",
+      drawUntilPlayable: "No match? Keep drawing.",
+      noPowerFinish: "Your last card must be a number.",
+      challengeWild4: "Call a bluff on a +4.",
     },
     FALLBACK = [
       { name: "No Mercy: Stack It All", effect: { type: "stackAny" } },
@@ -4759,23 +4765,23 @@ body { font-family: var(--font-body); }
       case "heavy":
         return `Every +2 and +4 adds ${ef.extra} extra ${ef.extra === 1 ? "card" : "cards"}.`;
       case "toggle":
-        return `House rule switched on: ${TOGGLES[ef.rule]}.`;
+        return TOGGLES[ef.rule];
       case "skipAll":
-        return "A skip skips everyone, so you go again.";
+        return "A skip skips everyone.";
       case "drawColor":
-        return "A +4 makes the next player draw until they get the color you pick.";
+        return "A +4 draws until your color shows up.";
       case "mercy":
-        return "Reach 25 cards and you're knocked out of the round.";
+        return "Hit 25 cards and you're out.";
       case "draw5":
-        return "Every +2 makes the next player draw 5 instead.";
+        return "Every +2 is a +5.";
       case "discardAll":
-        return `Playing a ${ef.value} also drops all your cards of that color.`;
+        return `A ${ef.value} drops all your cards of its color.`;
       case "shuffleHands":
-        return "A wild card shuffles every hand and deals them out again.";
+        return "A wild reshuffles every hand.";
       case "stackAny":
-        return "Stack +2s and +4s on each other.";
+        return "Stack any +2 or +4.";
       case "launcher":
-        return "No match? You get 0 to 4 random cards instead of 1.";
+        return "No match? Draw 0 to 4 at random.";
     }
     return "";
   }
@@ -4831,7 +4837,7 @@ body { font-family: var(--font-body); }
         <span class="wheel" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
         <div>
           <strong>Rule Roulette</strong>
-          <span class="roulette-sub">${o.solo ? "Add a twist to this round, or skip it." : o.host ? "Spin a twist. Players vote, you decide." : "The host spins a twist. Vote on it."}</span>
+          <span class="roulette-sub">${o.solo ? "One twist per round, or none." : o.host ? "You spin, everyone votes." : "Vote on the host's twist."}</span>
         </div>
       </div>
       ${
@@ -5006,7 +5012,7 @@ body { font-family: var(--font-body); }
       mu.addEventListener("change", () => {
         let v = mu.value.trim(),
           note = document.getElementById("music-note");
-        if (!v) return (store("lo-playlist", ""), (SOLO_MUSIC = null), note && (note.textContent = "Plays while you play. In online games, everyone at your table hears it."));
+        if (!v) return (store("lo-playlist", ""), (SOLO_MUSIC = null), note && (note.textContent = "Everyone at your table hears it."));
         let pm = parseYT(v);
         if (!pm) return note && (note.textContent = "That isn't a YouTube link. Copy the playlist's Share link.");
         store("lo-playlist", v);
@@ -5512,7 +5518,7 @@ body { font-family: var(--font-body); }
   function musicLobby(room, host) {
     let mm = room.music;
     return `<section class="lobby-music" aria-label="Music">
-      <div class="lobby-rules-head"><strong>Music</strong><span class="rules-note">${mm ? (host ? "Playing for everyone. Use the music dock to pause or skip." : "The host is playing music for the table.") : host ? "Paste a YouTube playlist and everyone hears it." : "The host hasn't added music yet."}</span></div>
+      <div class="lobby-rules-head"><strong>Music</strong><span class="rules-note">${mm ? (host ? "Playing for everyone." : "The host is playing music for the table.") : host ? "Everyone hears it." : "The host hasn't added music yet."}</span></div>
       ${
         host
           ? `<div class="link-row"><input id="lobby-music" type="url" inputmode="url" placeholder="Paste a YouTube playlist link" value="${esc(store("lo-playlist") || "")}" aria-label="YouTube playlist link" autocomplete="off"><button class="btn" id="music-set" type="button">${mm ? "Change" : "Play"}</button>${mm ? '<button class="btn btn-quiet" id="music-clear" type="button">Stop</button>' : ""}</div>`
@@ -5533,7 +5539,7 @@ body { font-family: var(--font-body); }
       <div class="room-code-card wait-card">
         <span class="wait-tag">Waiting room</span>
         <p class="wait-title">A round is in progress</p>
-        <p class="rules-note">You'll be dealt in when it ends. Only people in the waiting room can hear you until then.</p>
+        <p class="rules-note">You're in next round.</p>
       </div>
       <div class="wait-cols">
         <div><p class="pick-head small">At the table</p>
@@ -5593,7 +5599,22 @@ body { font-family: var(--font-body); }
     ["noPowerFinish", "No finishing on a power card"],
     ["doubleReverse", "Double reverse"],
   ];
+  var STD_RULES = { stacking: !0, jumpIn: !0, drawUntilPlayable: !1, challengeWild4: !1, noPowerFinish: !1, doubleReverse: !0, handSize: 7 };
+  // only the host can change the rules; everyone else sees the rules in play, as a plain list
+  function rulesSummary(room) {
+    let r = room.rules,
+      on = RULE_CHIPS.filter(([key]) => r[key]).map(([, label]) => label);
+    return `<section class="lobby-rules" aria-label="House rules">
+      <div class="lobby-rules-head"><strong>House rules</strong><span class="rules-note">Set by the host.</span></div>
+      <ul class="rule-list">
+        ${(on.length ? on : ["Standard rules"]).map((x) => `<li>${x}</li>`).join("")}
+        <li>${r.handSize || 7} cards each</li>
+        <li>${room.timer ? `${room.timer}s turns` : "No turn timer"}</li>
+      </ul>
+    </section>`;
+  }
   function houseRules(room, host) {
+    if (!host) return rulesSummary(room);
     let r = room.rules,
       seg = (name, opts, cur, fmt) =>
         `<div class="seg" role="radiogroup" aria-label="${name}">${opts
@@ -5603,7 +5624,7 @@ body { font-family: var(--font-body); }
           )
           .join("")}</div>`;
     return `<section class="lobby-rules" aria-label="House rules">
-      <div class="lobby-rules-head"><strong>House rules</strong><span class="rules-note">${host ? "Tap to change. Everyone plays by these." : "The host sets these."}</span></div>
+      <div class="lobby-rules-head"><strong>House rules</strong><span class="rules-note">Only you can change these.</span><button class="btn btn-quiet btn-reset" id="reset-rules" type="button">Reset</button></div>
       <div class="chips">${RULE_CHIPS.map(
         ([key, label]) =>
           `<button type="button" class="chip ${r[key] ? "on" : ""}" data-rule="${key}" aria-pressed="${!!r[key]}" ${host ? "" : "disabled"}>${label}</button>`,
@@ -5611,7 +5632,7 @@ body { font-family: var(--font-body); }
       <div class="lobby-segs">
         <div><span class="rules-note">Starting hand</span>${seg("hand", [5, 7, 10], r.handSize, (o) => `${o} cards`)}</div>
         <div><span class="rules-note">Turn timer</span>${seg("timer", [0, 15, 30, 60], room.timer, (o) => (o ? `${o}s` : "Off"))}</div>
-        <div><span class="rules-note">Computer speed</span>${seg("speed", ["relaxed", "normal", "fast"], room.speed, Me)}</div>
+        ${room.seats.some((s) => s.bot) ? `<div><span class="rules-note">Computer speed</span>${seg("speed", ["relaxed", "normal", "fast"], room.speed, Me)}</div>` : ""}
       </div>
     </section>`;
   }
@@ -5640,13 +5661,13 @@ body { font-family: var(--font-body); }
       <div class="lobby-grid">
       <div class="lobby-a">
       <div class="room-code-card">
-        <span class="rules-note">${host ? "Send this link to your friends" : "You're in. Share the link to invite more people."}</span>
+        <span class="rules-note">${host ? "Send this link to your friends" : "You're in. Share the link to invite more."}</span>
         <div class="link-row">
           <input id="game-link" readonly value="${esc(gameLink(NET.id))}" aria-label="Game link">
           <button class="btn btn-primary" id="copy-link" type="button">Copy link</button>
           ${navigator.share ? '<button class="btn" id="share-link" type="button">Share</button>' : ""}
         </div>
-        <span class="rules-note">Anyone with the link can join, up to 6 players. Tap the mic to talk.</span>
+        <span class="rules-note">Up to 6 players.</span>
       </div>
       ${seatList(room, host)}
       ${CHANGE_OPEN ? iconSwap(room) : ""}
@@ -5659,7 +5680,7 @@ body { font-family: var(--font-body); }
       ${
         host
           ? `<button class="btn btn-primary" id="deal-online" type="button" ${seats.length < 2 ? "disabled" : ""}>${seats.length < 2 ? "Waiting for players" : `Deal cards to ${seats.length}`}</button>
-             ${seats.length < 2 ? '<p class="rules-note">Tip: add a computer player to start right away.</p>' : ""}`
+             ${seats.length < 2 ? '<p class="rules-note">Or add a computer player.</p>' : ""}`
           : '<p class="lede">Waiting for the host to deal…</p>'
       }
       </div>
@@ -5698,6 +5719,10 @@ body { font-family: var(--font-body); }
     k.querySelectorAll("[data-rule]").forEach((b) =>
       b.addEventListener("click", () => pushSettings({ rules: { [b.dataset.rule]: !room.rules[b.dataset.rule] } })),
     );
+    y("#reset-rules", () => {
+      send({ t: "settings", rules: { ...STD_RULES }, timer: 30, speed: room.speed });
+      room.rule && send({ t: "clearRule" });
+    });
     k.querySelectorAll('input[name="lob-hand"]').forEach((i) => i.addEventListener("change", () => pushSettings({ rules: { handSize: Number(i.value) } })));
     k.querySelectorAll('input[name="lob-timer"]').forEach((i) => i.addEventListener("change", () => pushSettings({ timer: Number(i.value) })));
     k.querySelectorAll('input[name="lob-speed"]').forEach((i) => i.addEventListener("change", () => pushSettings({ speed: i.value })));
@@ -5979,13 +6004,13 @@ body { font-family: var(--font-body); }
           .join("")}
       </div>
       <h1>Uno-fficial</h1>
-      <p class="lede">You've been invited to a table. Pick a name and a player, then join. Match the color or symbol and empty your hand first.</p>
+      <p class="lede">You're invited to a table.</p>
       </div>
       <form id="join-form" class="setup-form">
         <label class="field"><span>Your name</span><input id="nick" maxlength="14" autocomplete="nickname" value="${esc(NICK)}" placeholder="Your name" required></label>
         <fieldset class="icon-pick pick-step ${pe ? "" : "needs-pick"}" id="pick-step">
           <legend><span class="step-num">1</span>Pick your player</legend>
-          <p class="pick-hint" id="pick-hint">${pe ? `You're playing as <span class="picked-name">${K[pe].name}</span>. Tap to change.` : "Tap a face to choose who you play as."}</p>
+          <p class="pick-hint" id="pick-hint">${pe ? `You're playing as <span class="picked-name">${K[pe].name}</span>. Tap to change.` : ""}</p>
           <div class="icons">
             ${ce
               .map(
@@ -6000,7 +6025,7 @@ body { font-family: var(--font-body); }
           </div>
         </fieldset>
         <button class="btn btn-primary" type="submit" id="join-game">Join the table</button>
-        <p class="rules-note">There's voice chat at the table. Your mic stays off until you tap it.</p>
+        <p class="rules-note">Your mic stays off until you tap it.</p>
       </form>
     </section>`;
     let nick = document.getElementById("nick");
